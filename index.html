@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learn DSA - 3D Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Outfit', sans-serif;
+            background: #000;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .glow-text {
+            text-shadow: 0 0 40px rgba(99, 102, 241, 0.6);
+        }
+
+        #ui-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            /* Let clicks pass to 3D if needed, but we have buttons */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .interactive {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="canvas-container" class="absolute inset-0 z-0"></div>
+
+    <div id="ui-layer">
+        <!-- Hero Title -->
+        <div class="text-center mb-16 relative z-10">
+            <h1
+                class="text-7xl md:text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-500 glow-text tracking-tighter mb-4">
+                LEARN DSA
+            </h1>
+            <p class="text-indigo-400 font-bold tracking-[0.3em] uppercase opacity-80 text-sm md:text-base">
+                Interactive <span class="text-white">3D</span> Algorithm Visualizer
+            </p>
+        </div>
+
+        <!-- Navigation Cards -->
+        <div class="flex flex-col md:flex-row gap-8 w-full max-w-4xl px-8 z-10 interactive">
+
+            <!-- Searching Card -->
+            <a href="visualizer.html?mode=search"
+                class="glass-card flex-1 p-8 rounded-3xl group cursor-pointer text-decoration-none">
+                <div class="h-full flex flex-col items-center text-center space-y-4">
+                    <div
+                        class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-3xl shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform duration-300">
+                        🔍
+                    </div>
+                    <h2 class="text-3xl font-bold text-slate-100 group-hover:text-blue-300 transition-colors">Searching
+                    </h2>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Master the art of finding data. Visualize <span class="text-white font-bold">Linear</span> and
+                        <span class="text-white font-bold">Binary Search</span> in 3D space.
+                    </p>
+                    <div
+                        class="mt-auto pt-6 text-xs text-blue-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                        Enter Module <span class="text-lg transition-transform group-hover:translate-x-1">→</span>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Sorting Card -->
+            <a href="visualizer.html?mode=sorting"
+                class="glass-card flex-1 p-8 rounded-3xl group cursor-pointer text-decoration-none">
+                <div class="h-full flex flex-col items-center text-center space-y-4">
+                    <div
+                        class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-3xl shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
+                        📊
+                    </div>
+                    <h2 class="text-3xl font-bold text-slate-100 group-hover:text-emerald-300 transition-colors">Sorting
+                    </h2>
+                    <p class="text-slate-400 text-sm leading-relaxed">
+                        Bring order to chaos. Watch <span class="text-white font-bold">Merge</span> and <span
+                            class="text-white font-bold">Quick Sort</span> organize data in real-time.
+                    </p>
+                    <div
+                        class="mt-auto pt-6 text-xs text-emerald-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                        Enter Module <span class="text-lg transition-transform group-hover:translate-x-1">→</span>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+
+        <!-- Added 'interactive' class here so clicks work -->
+        <div
+            class="interactive absolute bottom-8 text-slate-600 text-[10px] uppercase tracking-widest font-bold flex items-center gap-2">
+            <span>Made by</span>
+            <a href="https://www.instagram.com/pratapsingh_45" target="_blank"
+                class="flex items-center gap-1.5 hover:text-indigo-400 transition-colors group">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="group-hover:stroke-pink-500 transition-colors">
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                </svg>
+                Pratap Singh
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // --- 3D LANDING SCENE ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x000000, 0.03);
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 20;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        // --- GEOMETRY ---
+        // Abstract "Data Nodes" Structure like a molecular lattice
+        const geometry = new THREE.IcosahedronGeometry(2, 0);
+        const material = new THREE.MeshPhongMaterial({
+            color: 0x6366f1,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.3
+        });
+
+        const group = new THREE.Group();
+        scene.add(group);
+
+        const nodes = [];
+
+        for (let i = 0; i < 40; i++) {
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(
+                (Math.random() - 0.5) * 30,
+                (Math.random() - 0.5) * 30,
+                (Math.random() - 0.5) * 20
+            );
+            mesh.rotation.x = Math.random() * Math.PI;
+            mesh.scale.setScalar(Math.random() + 0.5);
+
+            group.add(mesh);
+            nodes.push({
+                mesh: mesh,
+                speedRot: (Math.random() - 0.5) * 0.02,
+                speedFloat: Math.random() * 0.002,
+                yOffset: Math.random() * Math.PI * 2
+            });
+        }
+
+        // Connecting Lines
+        const lineMat = new THREE.LineBasicMaterial({ color: 0x6366f1, transparent: true, opacity: 0.1 });
+        const lineGeo = new THREE.BufferGeometry();
+        const lineMesh = new THREE.LineSegments(lineGeo, lineMat);
+        group.add(lineMesh);
+
+
+        // --- LIGHTING ---
+        const ambientLight = new THREE.HemisphereLight(0xffffff, 0x000000, 1);
+        scene.add(ambientLight);
+
+        const pointLight1 = new THREE.PointLight(0x6366f1, 2, 50);
+        pointLight1.position.set(10, 10, 10);
+        scene.add(pointLight1);
+
+        const pointLight2 = new THREE.PointLight(0x10b981, 2, 50);
+        pointLight2.position.set(-10, -10, 5);
+        scene.add(pointLight2);
+
+        // --- MOUSE INT ---
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
+
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - windowHalfX);
+            mouseY = (event.clientY - windowHalfY);
+        });
+
+        // --- ANIMATION ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            targetX = mouseX * 0.001;
+            targetY = mouseY * 0.001;
+
+            group.rotation.y += 0.05 * (targetX - group.rotation.y);
+            group.rotation.x += 0.05 * (targetY - group.rotation.x);
+
+            const time = Date.now() * 0.001;
+
+            nodes.forEach(n => {
+                n.mesh.rotation.x += n.speedRot;
+                n.mesh.rotation.y += n.speedRot;
+                n.mesh.position.y += Math.sin(time + n.yOffset) * n.speedFloat;
+            });
+
+            // Dynamic Lines
+            // (Simple proximity check would be expensive, just random connections or static logic for performance)
+            // Let's just rotate the whole group for "scanning" effect
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+    </script>
+</body>
+
+</html>
