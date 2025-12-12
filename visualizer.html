@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Learn DSA - 3D Experience</title>
+    <title>3D Search Algorithm Visualizer - Active</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script type="importmap">
         {
@@ -15,374 +15,827 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
 
         body {
-            margin: 0;
-            overflow: hidden;
             font-family: 'Outfit', sans-serif;
             background: #000;
             color: #fff;
         }
 
-        /* Glitch Text Effect */
-        .glitch-wrapper {
-            position: relative;
+        .custom-scroll::-webkit-scrollbar {
+            width: 4px;
         }
 
-        .glitch {
-            position: relative;
-            color: #fff;
-            letter-spacing: -0.05em;
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
         }
 
-        .glitch::before,
-        .glitch::after {
-            content: attr(data-text);
-            position: absolute;
-            top: 0;
-            left: 0;
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 2px;
+        }
+
+        /* Glassmorphism Sidebar (Dark Active Style) */
+        .sidebar-panel {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        #canvas-wrapper {
+            background: #000;
+        }
+
+        /* Range Input Styling (Neon) */
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #4f46e5;
+            border: 2px solid #fff;
+            margin-top: -6px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.8);
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
             width: 100%;
-            height: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #333;
+            border-radius: 2px;
         }
 
-        .glitch::before {
-            left: 2px;
-            text-shadow: -1px 0 #00ffff;
-            clip: rect(44px, 450px, 56px, 0);
-            animation: glitch-anim 5s infinite linear alternate-reverse;
+        .active-tab {
+            background: rgba(79, 70, 229, 0.2);
+            color: #818cf8;
+            border: 1px solid rgba(79, 70, 229, 0.5);
+            box-shadow: 0 0 15px rgba(79, 70, 229, 0.2);
         }
 
-        .glitch::after {
-            left: -2px;
-            text-shadow: -1px 0 #ff00ff;
-            clip: rect(44px, 450px, 56px, 0);
-            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        .inactive-tab {
+            color: #64748b;
+            border: 1px solid transparent;
         }
 
-        @keyframes glitch-anim {
-            0% {
-                clip: rect(12px, 9999px, 81px, 0);
-            }
-
-            5% {
-                clip: rect(78px, 9999px, 9px, 0);
-            }
-
-            10% {
-                clip: rect(22px, 9999px, 6px, 0);
-            }
-
-            15% {
-                clip: rect(54px, 9999px, 43px, 0);
-            }
-
-            20% {
-                clip: rect(10px, 9999px, 83px, 0);
-            }
-
-            100% {
-                clip: rect(59px, 9999px, 96px, 0);
-            }
-        }
-
-        @keyframes glitch-anim2 {
-            0% {
-                clip: rect(65px, 9999px, 92px, 0);
-            }
-
-            5% {
-                clip: rect(40px, 9999px, 3px, 0);
-            }
-
-            10% {
-                clip: rect(3px, 9999px, 32px, 0);
-            }
-
-            15% {
-                clip: rect(58px, 9999px, 90px, 0);
-            }
-
-            20% {
-                clip: rect(17px, 9999px, 14px, 0);
-            }
-
-            100% {
-                clip: rect(89px, 9999px, 4px, 0);
-            }
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
-        }
-
-        .glass-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 0 50px rgba(99, 102, 241, 0.2);
-        }
-
-        #ui-layer {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-        }
-
-        .interactive {
-            pointer-events: auto;
+        .inactive-tab:hover {
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
 
-<body>
+<body class="h-screen w-screen overflow-hidden flex">
 
-    <div id="canvas-container" class="absolute inset-0 z-0"></div>
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar-panel w-80 h-full flex flex-col z-20 shrink-0 relative transition-all duration-300">
 
-    <div id="ui-layer">
-        <!-- Hero Title -->
-        <div class="text-center mb-24 relative z-10 mix-blend-screen">
-            <h1 class="glitch-wrapper text-7xl md:text-9xl font-extrabold tracking-tighter mb-4 opacity-90">
-                <span class="glitch" data-text="LEARN DSA">LEARN DSA</span>
+        <!-- Header -->
+        <div class="p-6 border-b border-white/5">
+            <h1 class="text-2xl font-extrabold tracking-tight flex items-center gap-2 text-white">
+                <div
+                    class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white text-xs shadow-[0_0_15px_rgba(79,70,229,0.5)]">
+                    3D</div>
+                Search<span class="text-indigo-500">Viz</span>
             </h1>
-            <p class="text-indigo-400 font-bold tracking-[0.5em] uppercase opacity-70 text-xs md:text-sm animate-pulse">
-                Interactive 3D Experience
-            </p>
+            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 ml-10">Active Edition v2.0</p>
         </div>
 
-        <!-- Navigation Cards -->
-        <div class="flex flex-col md:flex-row gap-8 w-full max-w-5xl px-8 z-10 interactive">
+        <!-- Controls -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-6 space-y-8">
 
-            <!-- Searching Card -->
-            <a href="visualizer.html?mode=search"
-                class="glass-card flex-1 p-10 rounded-3xl group cursor-pointer text-decoration-none relative overflow-hidden">
+            <!-- 1. Algorithm -->
+            <div class="space-y-3">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Algorithm</label>
+                <div class="grid grid-cols-2 gap-2 bg-black/20 p-1.5 rounded-xl border border-white/5">
+                    <button id="tab-linear"
+                        class="py-2.5 rounded-lg text-xs font-bold transition-all active-tab">Linear</button>
+                    <button id="tab-binary"
+                        class="py-2.5 rounded-lg text-xs font-bold transition-all inactive-tab">Binary</button>
+                    <button id="tab-merge"
+                        class="py-2.5 rounded-lg text-xs font-bold transition-all inactive-tab">Merge</button>
+                    <button id="tab-quick"
+                        class="py-2.5 rounded-lg text-xs font-bold transition-all inactive-tab">Quick</button>
+                    <button id="tab-selection"
+                        class="py-2.5 rounded-lg text-xs font-bold transition-all inactive-tab">Selection</button>
+                    <button id="tab-bubble"
+                        class="py-2.5 rounded-lg text-xs font-bold transition-all inactive-tab">Bubble</button>
+                </div>
+            </div>
+
+            <!-- 1.5 Algorithm Info -->
+            <div id="algo-info"
+                class="bg-indigo-900/10 border border-indigo-500/20 rounded-xl p-4 space-y-2 transition-all duration-300">
+                <h3 id="info-title" class="text-indigo-400 font-bold text-xs uppercase tracking-wider">Linear Search
+                </h3>
+                <p id="info-desc" class="text-[11px] text-slate-400 leading-relaxed">
+                    Iterates through every element sequentially. Does not require a sorted list.
+                </p>
+                <div class="flex items-center justify-between pt-2 border-t border-indigo-500/20">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase">Time Complexity</span>
+                    <span id="info-complexity"
+                        class="text-xs font-mono text-emerald-400 font-bold bg-emerald-900/20 px-2 py-0.5 rounded border border-emerald-500/30">O(n)</span>
+                </div>
+            </div>
+
+            <!-- 1.8 Custom Input -->
+            <div class="space-y-3">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Custom Array</label>
+                <div class="relative group">
+                    <input type="text" id="custom-input" placeholder="e.g. 10, 45, 99, 12"
+                        class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-slate-300 font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder-slate-600">
+                    <div
+                        class="absolute right-3 top-2.5 text-[9px] text-slate-500 font-bold bg-white/5 px-1.5 py-0.5 rounded border border-white/5">
+                        MAX 20
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Target -->
+            <div class="space-y-3">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Value</label>
+                <div class="flex gap-2 group">
+                    <input type="number" id="target-input" placeholder="1-100"
+                        class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-300 font-bold focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder-slate-600"
+                        min="1" max="100">
+                    <div id="target-display"
+                        class="w-14 flex items-center justify-center bg-indigo-900/20 border border-indigo-500/30 rounded-xl text-indigo-400 font-mono text-sm font-bold">
+                        ?</div>
+                </div>
+            </div>
+
+            <!-- 3. Speed -->
+            <div class="space-y-4">
+                <div class="flex justify-between items-end">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Speed</label>
+                    <span id="speed-label"
+                        class="text-[10px] bg-white/5 text-slate-400 px-2 py-1 rounded-md font-bold">Normal</span>
+                </div>
+                <input type="range" id="speed-range" min="100" max="2000" step="100" value="800" class="w-full">
+            </div>
+
+            <!-- 4. Legend -->
+            <div class="space-y-3 pt-2">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</label>
+                <div class="grid grid-cols-2 gap-3 text-xs text-slate-400 font-medium">
+                    <div class="flex items-center gap-2"><span
+                            class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_10px_#6366f1]"></span> Normal</div>
+                    <div class="flex items-center gap-2"><span
+                            class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_10px_#fbbf24]"></span> Scanning</div>
+                    <div class="flex items-center gap-2"><span
+                            class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]"></span> Found</div>
+                    <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-slate-600"></span> Ignored
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Actions -->
+        <div class="bg-black/20 p-5 border-t border-white/5 space-y-4 backdrop-blur-md">
+            <div class="grid grid-cols-2 gap-3">
+                <button id="reset-btn"
+                    class="py-3 px-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl text-xs font-bold text-slate-300 transition-all flex items-center justify-center gap-2">
+                    Reset
+                </button>
+                <button id="start-btn"
+                    class="py-3 px-4 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-xs font-bold text-white transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2">
+                    Start
+                </button>
+            </div>
+
+            <!-- Log -->
+            <div class="bg-black/40 rounded-xl p-3 h-32 flex flex-col font-mono border border-white/5">
                 <div
-                    class="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    class="text-[10px] text-slate-500 border-b border-white/5 pb-2 mb-2 flex justify-between uppercase tracking-wider font-bold">
+                    <span>Console</span>
+                    <span id="step-counter" class="text-indigo-400">Step: 0</span>
                 </div>
+                <div id="log-container"
+                    class="flex-1 overflow-y-auto custom-scroll text-[10px] space-y-1.5 text-slate-400 leading-relaxed">
+                    <div class="text-slate-600 italic">System ready...</div>
+                </div>
+            </div>
+        </div>
 
-                <div class="relative z-10 h-full flex flex-col items-start text-left space-y-6">
-                    <div
-                        class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-xl text-blue-400 group-hover:border-blue-400 group-hover:bg-blue-400/10 transition-all">
-                        01
-                    </div>
-                    <div>
-                        <h2
-                            class="text-4xl font-bold text-white mb-2 group-hover:translate-x-2 transition-transform duration-300">
-                            Searching</h2>
-                        <div class="h-0.5 w-12 bg-blue-500 group-hover:w-full transition-all duration-500"></div>
-                    </div>
-                    <p class="text-slate-400 text-sm leading-relaxed max-w-xs">
-                        Visualize linear and binary search algorithms in a reactive 3D environment.
-                    </p>
-                    <div
-                        class="mt-auto pt-4 text-[10px] text-white/50 font-bold uppercase tracking-widest flex items-center gap-2 group-hover:text-blue-400 transition-colors">
-                        Enter Module <span class="text-lg">→</span>
-                    </div>
-                </div>
+        <!-- Back Home -->
+        <div class="p-4 border-t border-white/5 text-center">
+            <a href="index.html"
+                class="text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-widest transition-colors flex items-center justify-center gap-2">
+                <span>← Back to Home</span>
             </a>
-
-            <!-- Sorting Card -->
-            <a href="visualizer.html?mode=sorting"
-                class="glass-card flex-1 p-10 rounded-3xl group cursor-pointer text-decoration-none relative overflow-hidden">
-                <div
-                    class="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-teal-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                </div>
-
-                <div class="relative z-10 h-full flex flex-col items-start text-left space-y-6">
-                    <div
-                        class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-xl text-emerald-400 group-hover:border-emerald-400 group-hover:bg-emerald-400/10 transition-all">
-                        02
-                    </div>
-                    <div>
-                        <h2
-                            class="text-4xl font-bold text-white mb-2 group-hover:translate-x-2 transition-transform duration-300">
-                            Sorting</h2>
-                        <div class="h-0.5 w-12 bg-emerald-500 group-hover:w-full transition-all duration-500"></div>
-                    </div>
-                    <p class="text-slate-400 text-sm leading-relaxed max-w-xs">
-                        Watch chaotic data organize itself through Merge, Quick, and Bubble sort visualizations.
-                    </p>
-                    <div
-                        class="mt-auto pt-4 text-[10px] text-white/50 font-bold uppercase tracking-widest flex items-center gap-2 group-hover:text-emerald-400 transition-colors">
-                        Enter Module <span class="text-lg">→</span>
-                    </div>
-                </div>
-            </a>
-
         </div>
 
-        <div
-            class="absolute bottom-10 w-full px-12 flex justify-between items-end text-[10px] text-white/30 font-mono uppercase tracking-widest interactive">
-            <div class="flex gap-8">
-                <a href="#" class="hover:text-white transition-colors">Github</a>
-                <a href="#" class="hover:text-white transition-colors">LinkedIn</a>
+    </aside>
+
+    <!-- RIGHT CONTENT (3D CANVAS) -->
+    <main class="flex-1 relative h-full">
+        <!-- Code View Toggle -->
+        <button id="code-toggle"
+            class="absolute top-6 right-6 z-30 w-10 h-10 bg-black/50 backdrop-blur border border-white/10 rounded-full flex items-center justify-center text-slate-300 shadow-lg hover:bg-black/80 hover:scale-110 transition-all">
+            <span class="font-mono text-xs font-bold">&lt;/&gt;</span>
+        </button>
+
+        <!-- Code Panel -->
+        <div id="code-panel"
+            class="absolute top-20 right-6 z-30 w-80 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl transform translate-x-[120%] transition-transform duration-300 flex flex-col max-h-[80vh]">
+            <div class="p-4 border-b border-white/10 flex justify-between items-center bg-white/5 rounded-t-2xl">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Algorithm Logic</span>
+                <span id="algo-name-code"
+                    class="text-[10px] font-mono text-indigo-400 bg-indigo-900/20 px-2 py-1 rounded border border-indigo-500/20">Binary
+                    Search</span>
             </div>
-            <div>
-                v2.01 [ACTIVE THEORY BUILD]
+            <div class="p-4 overflow-y-auto custom-scroll flex-1 font-mono text-[10px] leading-relaxed">
+                <pre id="code-content"
+                    class="text-slate-400"><span class="text-slate-600">// Select an algorithm to view code</span></pre>
             </div>
         </div>
-    </div>
 
-    <!-- About Modal -->
-    <button onclick="document.getElementById('about-modal').classList.remove('hidden')"
-        class="fixed top-8 right-8 z-50 px-6 py-2 bg-white/5 border border-white/10 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-white/70 hover:bg-white hover:text-black hover:border-white transition-all interactive">
-        About
-    </button>
+        <div id="canvas-wrapper" class="absolute inset-0 w-full h-full z-0 cursor-move">
+            <div id="canvas-container" class="w-full h-full"></div>
+        </div>
 
-    <div id="about-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl transition-all duration-500"
-            onclick="document.getElementById('about-modal').classList.add('hidden')"></div>
-        <div class="relative bg-black border border-white/10 rounded-2xl p-12 max-w-2xl w-full shadow-2xl">
-            <button onclick="document.getElementById('about-modal').classList.add('hidden')"
-                class="absolute top-6 right-6 text-white/50 hover:text-white">✕</button>
-            <h2 class="text-4xl font-bold text-white mb-2">About</h2>
-            <div class="h-1 w-20 bg-indigo-500 mb-8"></div>
-            <p class="text-slate-400 text-sm leading-7 mb-8">
-                This project demonstrates advanced DOM manipulation and WebGL rendering techniques. Built with Three.js
-                and Vanilla JS, it serves as a high-performance educational tool for visualizing complex algorithms.
-            </p>
-            <div class="grid grid-cols-3 gap-4 text-xs font-mono text-indigo-400">
-                <div class="border border-white/10 p-3 rounded text-center">THREE.JS</div>
-                <div class="border border-white/10 p-3 rounded text-center">WEBGL</div>
-                <div class="border border-white/10 p-3 rounded text-center">GLSL</div>
+        <!-- Floating UI / Overlay Info -->
+        <div class="absolute bottom-10 left-10 z-10 pointer-events-none select-none">
+            <div class="text-4xl md:text-6xl font-black text-white/5 tracking-tighter">
+                VISUALIZER
             </div>
         </div>
-    </div>
+    </main>
 
     <script type="module">
         import * as THREE from 'three';
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // --- 3D SCENE SETUP ---
+        // --- 3D SETUP ---
+        const wrapper = document.getElementById('canvas-wrapper');
         const container = document.getElementById('canvas-container');
+
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000000, 0.001);
+        scene.fog = new THREE.FogExp2(0x000000, 0.015);
+        scene.background = new THREE.Color(0x000000);
 
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.z = 50;
+        const camera = new THREE.PerspectiveCamera(45, wrapper.clientWidth / wrapper.clientHeight, 0.1, 1000);
+        camera.position.set(0, 15, 45);
+        camera.lookAt(0, 0, 0);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        const renderer = new THREE.WebGLRenderer({
+            antialias: false,
+            powerPreference: "high-performance"
+        });
+        renderer.setSize(wrapper.clientWidth, wrapper.clientHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         container.appendChild(renderer.domElement);
 
-        // --- POST PROCESSING ---
+        // --- CONTROLS ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxDistance = 100;
+        controls.minDistance = 10;
+        controls.enablePan = false;
+
+        // --- POST PROCESSING (BLOOM) ---
         const renderScene = new RenderPass(scene, camera);
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        bloomPass.threshold = 0.1;
-        bloomPass.strength = 1.5; // Strong neon bloom
-        bloomPass.radius = 0.8;
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(wrapper.clientWidth, wrapper.clientHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0.15;
+        bloomPass.strength = 1.2; // Neon Strength
+        bloomPass.radius = 0.5;
 
         const composer = new EffectComposer(renderer);
         composer.addPass(renderScene);
         composer.addPass(bloomPass);
 
-        // --- DIGITAL VORTEX (PARTICLE SYSTEM) ---
-        const geometry = new THREE.BufferGeometry();
-        const count = 4000;
+        // --- LIGHTING ---
+        const ambientLight = new THREE.HemisphereLight(0x000000, 0x000000, 1); // Dark ambient
+        scene.add(ambientLight);
 
-        const positions = new Float32Array(count * 3);
-        const colors = new Float32Array(count * 3);
-        const sizes = new Float32Array(count);
+        const spotLight = new THREE.SpotLight(0x4f46e5, 20);
+        spotLight.position.set(10, 40, 20);
+        spotLight.angle = 0.6;
+        spotLight.penumbra = 1;
+        spotLight.castShadow = true;
+        scene.add(spotLight);
 
-        const color1 = new THREE.Color(0x4f46e5); // Indigo
-        const color2 = new THREE.Color(0xec4899); // Pink
+        const rimLight = new THREE.SpotLight(0xec4899, 10);
+        rimLight.position.set(-20, 10, -20);
+        scene.add(rimLight);
 
-        for (let i = 0; i < count; i++) {
-            const i3 = i * 3;
+        // Grid (Cyberpunk)
+        const gridHelper = new THREE.GridHelper(100, 50, 0x4f46e5, 0x1f2937);
+        gridHelper.position.y = -0.1;
+        gridHelper.material.transparent = true;
+        gridHelper.material.opacity = 0.2;
+        scene.add(gridHelper);
 
-            // Sphere distribution
-            const r = 30 * Math.cbrt(Math.random());
-            const theta = Math.random() * 2 * Math.PI;
-            const phi = Math.acos(2 * Math.random() - 1);
-
-            positions[i3] = r * Math.sin(phi) * Math.cos(theta);
-            positions[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-            positions[i3 + 2] = r * Math.cos(phi);
-
-            // Mixed Colors
-            const mixedColor = color1.clone().lerp(color2, Math.random());
-            colors[i3] = mixedColor.r;
-            colors[i3 + 1] = mixedColor.g;
-            colors[i3 + 2] = mixedColor.b;
-
-            sizes[i] = Math.random() * 0.2;
+        // --- BACKGROUND PARTICLES ---
+        const pGeo = new THREE.BufferGeometry();
+        const pCount = 200;
+        const pPos = new Float32Array(pCount * 3);
+        for (let i = 0; i < pCount * 3; i += 3) {
+            pPos[i] = (Math.random() - 0.5) * 60;
+            pPos[i + 1] = Math.random() * 30;
+            pPos[i + 2] = (Math.random() - 0.5) * 60;
         }
-
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-        const material = new THREE.PointsMaterial({
-            size: 0.2,
-            vertexColors: true,
-            blending: THREE.AdditiveBlending,
-            depthWrite: false,
+        pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+        const pMat = new THREE.PointsMaterial({
+            size: 0.1,
+            color: 0xffffff,
             transparent: true,
-            opacity: 0.8
+            opacity: 0.4
         });
-
-        const particles = new THREE.Points(geometry, material);
+        const particles = new THREE.Points(pGeo, pMat);
         scene.add(particles);
 
-        // --- INTERACTIVITY ---
-        let mouseX = 0;
-        let mouseY = 0;
-        let targetX = 0;
-        let targetY = 0;
+        // --- MATERIALS ---
+        const materials = {
+            default: new THREE.MeshStandardMaterial({
+                color: 0x4f46e5,
+                emissive: 0x4f46e5,
+                emissiveIntensity: 1.5,
+                roughness: 0.2,
+                metalness: 0.8
+            }),
+            active: new THREE.MeshStandardMaterial({
+                color: 0xfbbf24, // Amber
+                emissive: 0xfbbf24,
+                emissiveIntensity: 2,
+            }),
+            found: new THREE.MeshStandardMaterial({
+                color: 0x10b981, // Emerald
+                emissive: 0x10b981,
+                emissiveIntensity: 2,
+            }),
+            discarded: new THREE.MeshStandardMaterial({
+                color: 0x334155, // Slate
+                transparent: true,
+                opacity: 0.3,
+            })
+        };
 
-        const windowHalfX = window.innerWidth / 2;
-        const windowHalfY = window.innerHeight / 2;
+        // --- STATE & HELPERS ---
+        let bars = [];
+        let dataValues = [];
+        const ARRAY_SIZE = 15;
+        let isSearching = false;
+        let currentMode = 'linear';
+        let animationSpeed = 800;
+        let stepCount = 0;
 
-        document.addEventListener('mousemove', (event) => {
-            mouseX = (event.clientX - windowHalfX) * 0.001;
-            mouseY = (event.clientY - windowHalfY) * 0.001;
-        });
+        // Text Sprite Helper (White Text)
+        function createTextSprite(message, color = "#ffffff") {
+            const fontface = "Outfit, sans-serif";
+            const fontsize = 70;
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            context.font = "800 " + fontsize + "px " + fontface;
 
-        // --- ANIMATION LOOP ---
-        const clock = new THREE.Clock();
+            const metrics = context.measureText(message);
+            const textWidth = metrics.width;
+            canvas.width = textWidth + 20;
+            canvas.height = fontsize + 20;
 
-        function animate() {
-            const elapsedTime = clock.getElapsedTime();
+            context.font = "800 " + fontsize + "px " + fontface;
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            context.fillStyle = color;
+            context.fillText(message, canvas.width / 2, canvas.height / 2);
 
-            targetX = mouseX * 2;
-            targetY = mouseY * 2;
-
-            // Rotate Vortex
-            particles.rotation.y = elapsedTime * 0.05 + (mouseX * 0.5);
-            particles.rotation.x += (mouseY * 0.05 - particles.rotation.x) * 0.05;
-
-            // Camera Sway
-            camera.position.x += (mouseX * 10 - camera.position.x) * 0.02;
-            camera.position.y += (-mouseY * 10 - camera.position.y) * 0.02;
-            camera.lookAt(0, 0, 0);
-
-            // Pulse effect
-            bloomPass.strength = 1.5 + Math.sin(elapsedTime * 2) * 0.2;
-
-            composer.render();
-            requestAnimationFrame(animate);
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.minFilter = THREE.LinearFilter;
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
+            sprite.scale.set(3, 1.5, 1);
+            return sprite;
         }
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
+        // --- CODE VIEW DATA ---
+        const algoCode = {
+            linear: ["for(let i=0; i<n; i++)", "  if(arr[i] == target)", "    found(i)", "return -1"],
+            binary: ["mid = (L+R)/2", "if(arr[mid]==T) found", "if(arr[mid]<T) L=mid+1", "else R=mid-1"],
+            selection: ["min = i", "for j=i+1 to n", "  if arr[j]<arr[min]", "  min=j", "swap(i, min)"],
+            bubble: ["for i=0 to n", "  for j=0 to n-i-1", "    if arr[j]>arr[j+1]", "      swap(j, j+1)"],
+            merge: ["mid=n/2", "mergeSort(L)", "mergeSort(R)", "merge(L,R)"],
+            quick: ["p=partition(L,H)", "quickSort(L,p-1)", "quickSort(p+1,H)"]
+        };
+
+        function updateCodeDisplay(mode) {
+            const container = document.getElementById('code-content');
+            const codeLines = algoCode[mode] || ["// No code available"];
+            container.innerHTML = codeLines.map((line, idx) =>
+                `<div id="code-line-${idx}" class="px-2 py-0.5 border-l-2 border-transparent opacity-70 transition-all font-mono text-[10px] text-slate-400 hover:bg-white/5 hover:text-white">${line}</div>`
+            ).join('');
+
+            const header = document.getElementById('algo-name-code');
+            if (header) header.innerText = mode.toUpperCase();
+        }
+
+        // --- EVENT LISTENERS (MODULE SAFE) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Speed Slider
+            const speedRange = document.getElementById('speed-range');
+            if (speedRange) {
+                speedRange.addEventListener('input', (e) => {
+                    animationSpeed = 2100 - parseInt(e.target.value); // Invert
+                    const val = parseInt(e.target.value);
+                    const label = val > 1500 ? "Fast" : (val < 500 ? "Slow" : "Normal");
+                    document.getElementById('speed-label').innerText = label;
+                });
+            }
+
+            // Tab Buttons
+            ['linear', 'binary', 'merge', 'quick', 'selection', 'bubble'].forEach(mode => {
+                const btn = document.getElementById('tab-' + mode);
+                if (btn) btn.addEventListener('click', () => switchMode(mode));
+            });
+
+            // Action Buttons
+            const resetBtn = document.getElementById('reset-btn');
+            if (resetBtn) resetBtn.addEventListener('click', generateNewArray);
+
+            const startBtn = document.getElementById('start-btn');
+            if (startBtn) startBtn.addEventListener('click', startSearch);
+
+            const codeToggle = document.getElementById('code-toggle');
+            if (codeToggle) codeToggle.addEventListener('click', toggleCodeView);
+
+            // Initial Setup
+            initNavigation();
+            generateNewArray();
+            animate();
         });
 
-        animate();
+        function switchMode(mode) {
+            if (isSearching) return;
+            currentMode = mode;
+
+            // UI Updates
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                btn.className = "py-2.5 rounded-lg text-xs font-bold transition-all inactive-tab";
+            });
+            const activeBtn = document.getElementById('tab-' + mode);
+            activeBtn.className = "py-2.5 rounded-lg text-xs font-bold transition-all active-tab";
+
+            updateAlgoInfo(mode);
+            updateCodeDisplay(mode);
+            generateNewArray();
+
+            // Toggle Target Input
+            const targetInput = document.getElementById('target-input');
+            const isSort = (mode === 'merge' || mode === 'quick' || mode === 'selection' || mode === 'bubble');
+            targetInput.disabled = isSort;
+            if (isSort) {
+                targetInput.parentElement.classList.add('opacity-50');
+                targetInput.placeholder = "N/A";
+                targetInput.value = "";
+                document.getElementById('target-display').innerText = "-";
+            } else {
+                targetInput.parentElement.classList.remove('opacity-50');
+                targetInput.placeholder = "1-100";
+            }
+        }
+
+        function updateAlgoInfo(mode) {
+            const title = document.getElementById('info-title');
+            title.innerText = mode.replace(/^\w/, c => c.toUpperCase()) + (mode.includes('linear') || mode.includes('binary') ? ' Search' : ' Sort');
+
+            const descs = {
+                linear: "Iterates through every element sequentially.",
+                binary: "Divides the search interval in half. Requires sorted list.",
+                merge: "Divides array into halves, sorts and merges.",
+                quick: "Partitions around a pivot and recursively sorts.",
+                selection: "Finds minimum element and moves to beginning.",
+                bubble: "Swaps adjacent elements if they are in wrong order."
+            };
+            document.getElementById('info-desc').innerText = descs[mode] || "";
+
+            const complexity = {
+                linear: "O(n)", binary: "O(log n)", merge: "O(n log n)",
+                quick: "O(n log n)", selection: "O(n²)", bubble: "O(n²)"
+            };
+            document.getElementById('info-complexity').innerText = complexity[mode] || "?";
+        }
+
+        async function generateNewArray() {
+            bars.forEach(b => {
+                scene.remove(b.mesh);
+                if (b.label) scene.remove(b.label);
+            });
+            bars = [];
+
+            const customInput = document.getElementById('custom-input');
+            let values = [];
+            if (customInput && customInput.value.trim() !== "") {
+                values = customInput.value.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n)).slice(0, 20);
+            }
+
+            if (values.length === 0) {
+                for (let i = 0; i < ARRAY_SIZE; i++) values.push(Math.floor(Math.random() * 99) + 1);
+            }
+
+            dataValues = values;
+            if (currentMode === 'binary') dataValues.sort((a, b) => a - b);
+
+            const width = 2;
+            const gap = 1.5;
+            const startX = -((dataValues.length * (width + gap)) / 2);
+
+            dataValues.forEach((val, i) => {
+                const h = val * 0.3;
+                const geometry = new THREE.BoxGeometry(width, h, width);
+                const mesh = new THREE.Mesh(geometry, materials.default);
+                mesh.position.set(startX + i * (width + gap), h / 2, 0);
+
+                const label = createTextSprite(val.toString());
+                label.position.set(mesh.position.x, h + 2, 0);
+
+                scene.add(mesh);
+                scene.add(label);
+
+                bars.push({ mesh, label, value: val, originalY: h / 2, index: i });
+            });
+        }
+
+        async function startSearch() {
+            if (isSearching) return;
+            isSearching = true;
+            stepCount = 0;
+            updateStepDisplay();
+
+            bars.forEach(b => b.mesh.material = materials.default);
+
+            const targetVal = parseInt(document.getElementById('target-input').value);
+            if (!targetVal && !['merge', 'quick', 'selection', 'bubble'].includes(currentMode)) {
+                alert("Please enter a target value");
+                isSearching = false;
+                return;
+            }
+            if (currentMode !== 'merge' && currentMode !== 'quick' && currentMode !== 'selection' && currentMode !== 'bubble') {
+                document.getElementById('target-display').innerText = targetVal;
+            }
+
+            try {
+                if (currentMode === 'linear') await linearSearch(targetVal);
+                else if (currentMode === 'binary') await binarySearch(targetVal);
+                else if (currentMode === 'merge') await startMergeSort();
+                else if (currentMode === 'quick') await startQuickSort();
+                else if (currentMode === 'selection') await startSelectionSort();
+                else if (currentMode === 'bubble') await startBubbleSort();
+            } catch (e) { console.error(e); }
+
+            isSearching = false;
+        }
+
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        function updateStepDisplay() { document.getElementById('step-counter').innerText = `Step: ${stepCount}`; }
+        function log(msg) {
+            const container = document.getElementById('log-container');
+            const div = document.createElement('div');
+            div.innerText = `> ${msg}`;
+            container.prepend(div);
+        }
+
+        async function highlightLine(lineNo) { } // Placeholder
+
+        async function linearSearch(target) {
+            log(`Linear Search: ${target}`);
+            for (let i = 0; i < bars.length; i++) {
+                stepCount++;
+                updateStepDisplay();
+                bars[i].mesh.material = materials.active;
+                await sleep(animationSpeed);
+                if (bars[i].value === target) {
+                    bars[i].mesh.material = materials.found;
+                    log(`Found at index ${i}`);
+                    return;
+                }
+                bars[i].mesh.material = materials.discarded;
+            }
+            log("Not found");
+        }
+
+        async function binarySearch(target) {
+            log(`Binary Search: ${target}`);
+            let left = 0;
+            let right = bars.length - 1;
+            while (left <= right) {
+                stepCount++;
+                updateStepDisplay();
+                const mid = Math.floor((left + right) / 2);
+                bars[mid].mesh.material = materials.active;
+
+                for (let k = left; k <= right; k++) {
+                    if (k !== mid) bars[k].mesh.material = materials.active;
+                }
+
+                await sleep(animationSpeed);
+
+                if (bars[mid].value === target) {
+                    bars[mid].mesh.material = materials.found;
+                    log(`Found at index ${mid}`);
+                    return;
+                }
+
+                bars[mid].mesh.material = materials.discarded;
+
+                if (bars[mid].value < target) {
+                    for (let k = left; k <= mid; k++) bars[k].mesh.material = materials.discarded;
+                    left = mid + 1;
+                } else {
+                    for (let k = mid; k <= right; k++) bars[k].mesh.material = materials.discarded;
+                    right = mid - 1;
+                }
+                await sleep(animationSpeed);
+            }
+            log("Not found");
+        }
+
+        async function swapBars(i, j) {
+            const p1 = bars[i].mesh.position.clone();
+            const p2 = bars[j].mesh.position.clone();
+            const frames = 10;
+            const dx = (p2.x - p1.x) / frames;
+
+            for (let f = 0; f < frames; f++) {
+                bars[i].mesh.position.x += dx;
+                bars[j].mesh.position.x -= dx;
+                bars[i].label.position.x = bars[i].mesh.position.x;
+                bars[j].label.position.x = bars[j].mesh.position.x;
+                await sleep(10);
+            }
+
+            const temp = bars[i];
+            bars[i] = bars[j];
+            bars[j] = temp;
+        }
+
+        async function replaceBar(idx, newVal) {
+            bars[idx].value = newVal;
+            const width = 2;
+            const h = newVal * 0.3;
+            bars[idx].mesh.geometry.dispose();
+            bars[idx].mesh.geometry = new THREE.BoxGeometry(width, h, width);
+            bars[idx].mesh.position.y = h / 2;
+
+            scene.remove(bars[idx].label);
+            bars[idx].label = createTextSprite(newVal.toString());
+            bars[idx].label.position.set(bars[idx].mesh.position.x, h + 2, 0);
+            scene.add(bars[idx].label);
+
+            await sleep(animationSpeed / 2);
+        }
+
+        async function startSelectionSort() {
+            log("Selection Sort...");
+            const n = bars.length;
+            for (let i = 0; i < n; i++) {
+                let minIdx = i;
+                bars[i].mesh.material = materials.active;
+                for (let j = i + 1; j < n; j++) {
+                    bars[j].mesh.material = materials.active;
+                    await sleep(animationSpeed / 4);
+                    if (bars[j].value < bars[minIdx].value) {
+                        if (minIdx !== i) bars[minIdx].mesh.material = materials.default;
+                        minIdx = j;
+                        bars[minIdx].mesh.material = materials.active;
+                    } else {
+                        bars[j].mesh.material = materials.default;
+                    }
+                }
+                if (minIdx !== i) await swapBars(i, minIdx);
+                bars[i].mesh.material = materials.found;
+            }
+            log("Done");
+        }
+
+        async function startBubbleSort() {
+            log("Bubble Sort...");
+            const n = bars.length;
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n - i - 1; j++) {
+                    bars[j].mesh.material = materials.active;
+                    bars[j + 1].mesh.material = materials.active;
+                    await sleep(animationSpeed / 2);
+                    if (bars[j].value > bars[j + 1].value) {
+                        await swapBars(j, j + 1);
+                    }
+                    bars[j].mesh.material = materials.default;
+                    bars[j + 1].mesh.material = materials.default;
+                }
+                bars[n - i - 1].mesh.material = materials.found;
+            }
+            bars[0].mesh.material = materials.found;
+        }
+
+        async function startQuickSort() {
+            await quickSort(0, bars.length - 1);
+        }
+        async function quickSort(low, high) {
+            if (low < high) {
+                let pi = await partition(low, high);
+                await quickSort(low, pi - 1);
+                await quickSort(pi + 1, high);
+            } else if (low === high) bars[low].mesh.material = materials.found;
+        }
+        async function partition(low, high) {
+            let pivot = bars[high].value;
+            bars[high].mesh.material = materials.active;
+            let i = (low - 1);
+            for (let j = low; j <= high - 1; j++) {
+                bars[j].mesh.material = materials.active;
+                await sleep(animationSpeed / 2);
+                if (bars[j].value < pivot) {
+                    i++;
+                    await swapBars(i, j);
+                }
+                bars[j].mesh.material = materials.default;
+            }
+            await swapBars(i + 1, high);
+            bars[i + 1].mesh.material = materials.found;
+            return (i + 1);
+        }
+
+        async function startMergeSort() {
+            await mergeSort(0, bars.length - 1);
+            bars.forEach(b => b.mesh.material = materials.found);
+        }
+        async function mergeSort(l, r) {
+            if (l >= r) return;
+            const m = l + Math.floor((r - l) / 2);
+            await mergeSort(l, m);
+            await mergeSort(m + 1, r);
+            await merge(l, m, r);
+        }
+        async function merge(l, m, r) {
+            const n1 = m - l + 1;
+            const n2 = r - m;
+            let L = new Array(n1);
+            let R = new Array(n2);
+            for (let i = 0; i < n1; i++) L[i] = bars[l + i].value;
+            for (let j = 0; j < n2; j++) R[j] = bars[m + 1 + j].value;
+
+            let i = 0, j = 0, k = l;
+            while (i < n1 && j < n2) {
+                bars[k].mesh.material = materials.active;
+                await sleep(animationSpeed / 2);
+                if (L[i] <= R[j]) { await replaceBar(k, L[i]); i++; }
+                else { await replaceBar(k, R[j]); j++; }
+                bars[k].mesh.material = materials.default;
+                k++;
+            }
+            while (i < n1) { await replaceBar(k, L[i]); i++; k++; }
+            while (j < n2) { await replaceBar(k, R[j]); j++; k++; }
+        }
+
+        function toggleCodeView() {
+            const panel = document.getElementById('code-panel');
+            if (!panel) return;
+            panel.classList.toggle('translate-x-full');
+            if (panel.classList.contains('translate-x-[120%]')) {
+                panel.classList.remove('translate-x-[120%]');
+                panel.classList.add('translate-x-0');
+            } else {
+                panel.classList.add('translate-x-[120%]');
+                panel.classList.remove('translate-x-0');
+            }
+        }
+
+        function initNavigation() {
+            const params = new URLSearchParams(window.location.search);
+            const mode = params.get('mode');
+            if (mode === 'search') {
+                ['merge', 'quick', 'selection', 'bubble'].forEach(id => {
+                    const el = document.getElementById('tab-' + id);
+                    if (el) el.style.display = 'none';
+                });
+                switchMode('linear');
+            } else if (mode === 'sorting') {
+                ['linear', 'binary'].forEach(id => {
+                    const el = document.getElementById('tab-' + id);
+                    if (el) el.style.display = 'none';
+                });
+                switchMode('merge');
+            }
+        }
+
+        // --- ANIMATION ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            renderer.render(scene, camera);
+            composer.render();
+        }
     </script>
 </body>
 
