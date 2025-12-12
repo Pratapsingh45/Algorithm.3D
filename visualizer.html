@@ -4,1313 +4,385 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Search Algorithm Visualizer - Ultra</title>
+    <title>Learn DSA - 3D Experience</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap');
 
         body {
+            margin: 0;
+            overflow: hidden;
             font-family: 'Outfit', sans-serif;
-            background: #0f172a;
-            color: white;
+            background: #000;
+            color: #fff;
         }
 
-        .custom-scroll::-webkit-scrollbar {
-            width: 4px;
+        /* Glitch Text Effect */
+        .glitch-wrapper {
+            position: relative;
         }
 
-        .custom-scroll::-webkit-scrollbar-track {
-            background: transparent;
+        .glitch {
+            position: relative;
+            color: #fff;
+            letter-spacing: -0.05em;
         }
 
-        .custom-scroll::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 2px;
-        }
-
-        /* Glassmorphism Sidebar */
-        .sidebar-panel {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
-        }
-
-        #canvas-wrapper {
-            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #020617 100%);
-        }
-
-        /* Range Input Styling (Dark) */
-        input[type="range"] {
-            -webkit-appearance: none;
-            background: transparent;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: #6366f1;
-            border: 2px solid #ffffff;
-            margin-top: -6px;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(99, 102, 241, 0.8);
-        }
-
-        input[type="range"]::-webkit-slider-runnable-track {
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #334155;
-            border-radius: 2px;
+            height: 100%;
         }
 
-        .glow-text {
-            text-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+        .glitch::before {
+            left: 2px;
+            text-shadow: -1px 0 #00ffff;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+
+        .glitch::after {
+            left: -2px;
+            text-shadow: -1px 0 #ff00ff;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% {
+                clip: rect(12px, 9999px, 81px, 0);
+            }
+
+            5% {
+                clip: rect(78px, 9999px, 9px, 0);
+            }
+
+            10% {
+                clip: rect(22px, 9999px, 6px, 0);
+            }
+
+            15% {
+                clip: rect(54px, 9999px, 43px, 0);
+            }
+
+            20% {
+                clip: rect(10px, 9999px, 83px, 0);
+            }
+
+            100% {
+                clip: rect(59px, 9999px, 96px, 0);
+            }
+        }
+
+        @keyframes glitch-anim2 {
+            0% {
+                clip: rect(65px, 9999px, 92px, 0);
+            }
+
+            5% {
+                clip: rect(40px, 9999px, 3px, 0);
+            }
+
+            10% {
+                clip: rect(3px, 9999px, 32px, 0);
+            }
+
+            15% {
+                clip: rect(58px, 9999px, 90px, 0);
+            }
+
+            20% {
+                clip: rect(17px, 9999px, 14px, 0);
+            }
+
+            100% {
+                clip: rect(89px, 9999px, 4px, 0);
+            }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 50px rgba(99, 102, 241, 0.2);
+        }
+
+        #ui-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .interactive {
+            pointer-events: auto;
         }
     </style>
 </head>
 
-<body class="h-screen w-screen overflow-hidden flex">
+<body>
 
-    <!-- LEFT SIDEBAR -->
-    <aside class="sidebar-panel w-80 h-full flex flex-col z-20 shrink-0 relative transition-all duration-300">
+    <div id="canvas-container" class="absolute inset-0 z-0"></div>
 
-        <!-- Header -->
-        <div class="p-6 border-b border-white/10">
-            <h1 class="text-2xl font-extrabold tracking-tight flex items-center gap-2 glow-text">
-                <div
-                    class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white text-xs shadow-[0_0_15px_rgba(99,102,241,0.5)]">
-                    3D</div>
-                Search<span class="text-indigo-400">Viz</span>
+    <div id="ui-layer">
+        <!-- Hero Title -->
+        <div class="text-center mb-24 relative z-10 mix-blend-screen">
+            <h1 class="glitch-wrapper text-7xl md:text-9xl font-extrabold tracking-tighter mb-4 opacity-90">
+                <span class="glitch" data-text="LEARN DSA">LEARN DSA</span>
             </h1>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 ml-10">Ultra Edition v5.0</p>
+            <p class="text-indigo-400 font-bold tracking-[0.5em] uppercase opacity-70 text-xs md:text-sm animate-pulse">
+                Interactive 3D Experience
+            </p>
         </div>
 
-        <!-- Controls -->
-        <div class="flex-1 overflow-y-auto custom-scroll p-6 space-y-8">
+        <!-- Navigation Cards -->
+        <div class="flex flex-col md:flex-row gap-8 w-full max-w-5xl px-8 z-10 interactive">
 
-            <!-- 1. Algorithm -->
-            <div class="space-y-3">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Algorithm</label>
-                <div class="grid grid-cols-2 gap-2 bg-slate-800/50 p-1.5 rounded-xl border border-white/5">
-                    <button id="tab-linear" onclick="switchMode('linear')"
-                        class="py-2.5 rounded-lg text-xs font-bold transition-all bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]">
-                        Linear
-                    </button>
-                    <button id="tab-binary" onclick="switchMode('binary')"
-                        class="py-2.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-white/5">
-                        Binary
-                    </button>
-                    <button id="tab-merge" onclick="switchMode('merge')"
-                        class="py-2.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-white/5">
-                        Merge
-                    </button>
-                    <button id="tab-quick" onclick="switchMode('quick')"
-                        class="py-2.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-white/5">
-                        Quick
-                    </button>
-                    <button id="tab-selection" onclick="switchMode('selection')"
-                        class="py-2.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-white/5">
-                        Selection
-                    </button>
-                    <button id="tab-bubble" onclick="switchMode('bubble')"
-                        class="py-2.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-white/5">
-                        Bubble
-                    </button>
-                </div>
-            </div>
-
-            <!-- 1.5 Algorithm Info -->
-            <div id="algo-info"
-                class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-4 space-y-2 transition-all duration-300 hover:bg-indigo-500/20">
-                <h3 id="info-title" class="text-indigo-300 font-bold text-xs uppercase tracking-wider">Linear Search
-                </h3>
-                <p id="info-desc" class="text-[11px] text-slate-400 leading-relaxed">
-                    Iterates through every element sequentially. Does not require a sorted list.
-                </p>
-                <div class="flex items-center justify-between pt-2 border-t border-white/5">
-                    <span class="text-[10px] text-slate-500 font-bold uppercase">Time Complexity</span>
-                    <span id="info-complexity"
-                        class="text-xs font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">O(n)</span>
-                </div>
-            </div>
-
-            <!-- 1.8 Custom Input -->
-            <div class="space-y-3">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Custom Array</label>
-                <div class="relative group">
-                    <input type="text" id="custom-input" placeholder="e.g. 10, 45, 99, 12"
-                        class="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-3 text-xs text-white font-mono focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder-slate-600">
-                    <div
-                        class="absolute right-3 top-2.5 text-[9px] text-slate-600 font-bold bg-slate-900/80 px-1.5 py-0.5 rounded border border-white/5">
-                        MAX 20
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. Target -->
-            <div class="space-y-3">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Value</label>
-                <div class="flex gap-2 group">
-                    <input type="number" id="target-input" placeholder="1-100"
-                        class="flex-1 bg-slate-800/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-white font-bold focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all placeholder-slate-500"
-                        min="1" max="100">
-                    <div id="target-display"
-                        class="w-14 flex items-center justify-center bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-indigo-400 font-mono text-sm font-bold">
-                        ?</div>
-                </div>
-            </div>
-
-            <!-- 3. Speed -->
-            <div class="space-y-4">
-                <div class="flex justify-between items-end">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Speed</label>
-                    <span id="speed-label"
-                        class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded-md font-bold">Normal</span>
-                </div>
-                <input type="range" id="speed-range" min="100" max="2000" step="100" value="800" class="w-full">
-            </div>
-
-            <!-- 4. Legend -->
-            <div class="space-y-3 pt-2">
-                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</label>
-                <div class="grid grid-cols-2 gap-3 text-xs text-slate-400 font-medium">
-                    <div class="flex items-center gap-2"><span
-                            class="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_8px_#6366f1]"></span> Normal</div>
-                    <div class="flex items-center gap-2"><span
-                            class="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]"></span> Scanning</div>
-                    <div class="flex items-center gap-2"><span
-                            class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span> Found</div>
-                    <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-slate-600"></span> Ignored
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bottom Actions -->
-        <div class="bg-slate-900/80 p-5 border-t border-white/10 space-y-4 backdrop-blur-md">
-            <div class="grid grid-cols-2 gap-3">
-                <button onclick="generateNewArray()"
-                    class="py-3 px-4 bg-slate-800 hover:bg-slate-700 border border-white/5 rounded-xl text-xs font-bold text-white transition-all flex items-center justify-center gap-2">
-                    Reset
-                </button>
-                <button onclick="startSearch()" id="start-btn"
-                    class="py-3 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 rounded-xl text-xs font-bold text-white transition-all shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2">
-                    Start
-                </button>
-            </div>
-
-            <!-- Log -->
-            <div class="bg-black/30 rounded-xl p-3 h-32 flex flex-col font-mono border border-white/5">
+            <!-- Searching Card -->
+            <a href="visualizer.html?mode=search"
+                class="glass-card flex-1 p-10 rounded-3xl group cursor-pointer text-decoration-none relative overflow-hidden">
                 <div
-                    class="text-[10px] text-slate-500 border-b border-white/5 pb-2 mb-2 flex justify-between uppercase tracking-wider font-bold">
-                    <span>Console</span>
-                    <span id="step-counter" class="text-indigo-400">Step: 0</span>
+                    class="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-purple-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                 </div>
-                <div id="log-container"
-                    class="flex-1 overflow-y-auto custom-scroll text-[10px] space-y-1.5 text-slate-400 leading-relaxed">
-                    <div class="text-slate-600 italic">System ready...</div>
+
+                <div class="relative z-10 h-full flex flex-col items-start text-left space-y-6">
+                    <div
+                        class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-xl text-blue-400 group-hover:border-blue-400 group-hover:bg-blue-400/10 transition-all">
+                        01
+                    </div>
+                    <div>
+                        <h2
+                            class="text-4xl font-bold text-white mb-2 group-hover:translate-x-2 transition-transform duration-300">
+                            Searching</h2>
+                        <div class="h-0.5 w-12 bg-blue-500 group-hover:w-full transition-all duration-500"></div>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-xs">
+                        Visualize linear and binary search algorithms in a reactive 3D environment.
+                    </p>
+                    <div
+                        class="mt-auto pt-4 text-[10px] text-white/50 font-bold uppercase tracking-widest flex items-center gap-2 group-hover:text-blue-400 transition-colors">
+                        Enter Module <span class="text-lg">→</span>
+                    </div>
                 </div>
-            </div>
+            </a>
+
+            <!-- Sorting Card -->
+            <a href="visualizer.html?mode=sorting"
+                class="glass-card flex-1 p-10 rounded-3xl group cursor-pointer text-decoration-none relative overflow-hidden">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-teal-600/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                </div>
+
+                <div class="relative z-10 h-full flex flex-col items-start text-left space-y-6">
+                    <div
+                        class="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center text-xl text-emerald-400 group-hover:border-emerald-400 group-hover:bg-emerald-400/10 transition-all">
+                        02
+                    </div>
+                    <div>
+                        <h2
+                            class="text-4xl font-bold text-white mb-2 group-hover:translate-x-2 transition-transform duration-300">
+                            Sorting</h2>
+                        <div class="h-0.5 w-12 bg-emerald-500 group-hover:w-full transition-all duration-500"></div>
+                    </div>
+                    <p class="text-slate-400 text-sm leading-relaxed max-w-xs">
+                        Watch chaotic data organize itself through Merge, Quick, and Bubble sort visualizations.
+                    </p>
+                    <div
+                        class="mt-auto pt-4 text-[10px] text-white/50 font-bold uppercase tracking-widest flex items-center gap-2 group-hover:text-emerald-400 transition-colors">
+                        Enter Module <span class="text-lg">→</span>
+                    </div>
+                </div>
+            </a>
+
         </div>
 
-        <!-- Credits -->
-        <!-- Credits -->
-        <div class="px-6 py-4 border-t border-white/10 text-center mt-auto">
-            <div
-                class="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center justify-center gap-2 mb-2">
-                <span>Developed by Pratap Singh</span>
-            </div>
-            <div class="flex items-center justify-center gap-4">
-                <a href="https://github.com/" target="_blank"
-                    class="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-white transition-colors group font-bold uppercase tracking-wider">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="opacity-70 group-hover:opacity-100 group-hover:stroke-fuchsia-400 transition-all">
-                        <path
-                            d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-                        <path d="M9 18c-4.51 2-5-2-7-2" />
-                    </svg>
-                    <span>GitHub</span>
-                </a>
-                <a href="https://linkedin.com/in/" target="_blank"
-                    class="flex items-center gap-1.5 text-[10px] text-slate-400 hover:text-white transition-colors group font-bold uppercase tracking-wider">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="opacity-70 group-hover:opacity-100 group-hover:stroke-blue-400 transition-all">
-                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
-                        <rect width="4" height="12" x="2" y="9" />
-                        <circle cx="4" cy="4" r="2" />
-                    </svg>
-                    <span>LinkedIn</span>
-                </a>
-            </div>
-        </div>
-    </aside>
-
-    <!-- MAIN 3D CANVAS -->
-    <main id="canvas-wrapper" class="flex-1 h-full relative cursor-move">
-        <div id="canvas-container" class="absolute inset-0 z-0"></div>
-
-        <!-- Floating Info Card -->
-        <div class="absolute top-8 left-1/2 -translate-x-1/2 w-full max-w-lg px-4 pointer-events-none z-10">
-            <div id="algo-description"
-                class="bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl px-8 py-5 text-center shadow-2xl transition-all duration-500 opacity-0 translate-y-[-20px] transform">
-                <p class="text-sm font-medium text-slate-200"></p>
-            </div>
-        </div>
-
-        <!-- Code Panel (Right Side) -->
-        <div id="code-panel"
-            class="absolute top-24 right-8 w-80 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl transition-all duration-300 translate-x-[120%] hidden md:block">
-            <div class="bg-white/5 px-4 py-3 border-b border-white/5 flex justify-between items-center">
-                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Algorithm Logic</span>
-                <button onclick="toggleCodePanel()" class="text-slate-400 hover:text-white transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18" />
-                        <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                </button>
-            </div>
-            <div class="p-4 font-mono text-[10px] leading-relaxed text-slate-400 overflow-x-auto custom-scroll"
-                id="code-content">
-                <!-- Code injected here -->
-            </div>
-        </div>
-
-        <!-- Toggle Code Button -->
-        <button onclick="toggleCodePanel()"
-            class="absolute top-8 right-8 z-20 bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl border border-white/10 shadow-xl transition-all group">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                class="group-hover:stroke-indigo-400 transition-colors">
-                <polyline points="16 18 22 12 16 6" />
-                <polyline points="8 6 2 12 8 18" />
-            </svg>
-        </button>
-
-        <!-- Hint -->
         <div
-            class="absolute bottom-8 right-8 flex items-center gap-4 pointer-events-none select-none text-slate-500 text-[10px] font-bold uppercase tracking-widest opacity-60">
-            <div class="flex items-center gap-2"><span class="text-xl">🖱️</span> Rotate</div>
-            <div class="flex items-center gap-2"><span class="text-xl">📜</span> Zoom</div>
+            class="absolute bottom-10 w-full px-12 flex justify-between items-end text-[10px] text-white/30 font-mono uppercase tracking-widest interactive">
+            <div class="flex gap-8">
+                <a href="#" class="hover:text-white transition-colors">Github</a>
+                <a href="#" class="hover:text-white transition-colors">LinkedIn</a>
+            </div>
+            <div>
+                v2.01 [ACTIVE THEORY BUILD]
+            </div>
         </div>
-    </main>
+    </div>
 
-    <script>
-        // --- 3D SETUP ---
-        const wrapper = document.getElementById('canvas-wrapper');
+    <!-- About Modal -->
+    <button onclick="document.getElementById('about-modal').classList.remove('hidden')"
+        class="fixed top-8 right-8 z-50 px-6 py-2 bg-white/5 border border-white/10 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest text-white/70 hover:bg-white hover:text-black hover:border-white transition-all interactive">
+        About
+    </button>
+
+    <div id="about-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-xl transition-all duration-500"
+            onclick="document.getElementById('about-modal').classList.add('hidden')"></div>
+        <div class="relative bg-black border border-white/10 rounded-2xl p-12 max-w-2xl w-full shadow-2xl">
+            <button onclick="document.getElementById('about-modal').classList.add('hidden')"
+                class="absolute top-6 right-6 text-white/50 hover:text-white">✕</button>
+            <h2 class="text-4xl font-bold text-white mb-2">About</h2>
+            <div class="h-1 w-20 bg-indigo-500 mb-8"></div>
+            <p class="text-slate-400 text-sm leading-7 mb-8">
+                This project demonstrates advanced DOM manipulation and WebGL rendering techniques. Built with Three.js
+                and Vanilla JS, it serves as a high-performance educational tool for visualizing complex algorithms.
+            </p>
+            <div class="grid grid-cols-3 gap-4 text-xs font-mono text-indigo-400">
+                <div class="border border-white/10 p-3 rounded text-center">THREE.JS</div>
+                <div class="border border-white/10 p-3 rounded text-center">WEBGL</div>
+                <div class="border border-white/10 p-3 rounded text-center">GLSL</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        // --- 3D SCENE SETUP ---
         const container = document.getElementById('canvas-container');
-
         const scene = new THREE.Scene();
-        // Richer fog for depth
-        scene.fog = new THREE.FogExp2(0x020617, 0.015);
+        scene.fog = new THREE.FogExp2(0x000000, 0.001);
 
-        const camera = new THREE.PerspectiveCamera(45, wrapper.clientWidth / wrapper.clientHeight, 0.1, 1000);
-        camera.position.set(0, 20, 55);
-        camera.lookAt(0, 0, 0);
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 50;
 
-        const renderer = new THREE.WebGLRenderer({
-            antialias: window.devicePixelRatio < 2,
-            alpha: true,
-            powerPreference: "high-performance"
-        });
-        renderer.setSize(wrapper.clientWidth, wrapper.clientHeight);
+        const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: "high-performance" });
+        renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        renderer.outputEncoding = THREE.sRGBEncoding;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
         container.appendChild(renderer.domElement);
 
-        // --- LIGHTING (Cyberpunk/Neon Style) ---
-        const ambientLight = new THREE.HemisphereLight(0x4c1d95, 0x1e293b, 0.4); // Purple/Slate ambient
-        scene.add(ambientLight);
+        // --- POST PROCESSING ---
+        const renderScene = new RenderPass(scene, camera);
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0.1;
+        bloomPass.strength = 1.5; // Strong neon bloom
+        bloomPass.radius = 0.8;
 
-        const mainSpot = new THREE.SpotLight(0x818cf8, 2);
-        mainSpot.position.set(10, 40, 20);
-        mainSpot.angle = 0.5;
-        mainSpot.penumbra = 0.5;
-        mainSpot.castShadow = true;
-        mainSpot.shadow.bias = -0.0001;
-        scene.add(mainSpot);
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderScene);
+        composer.addPass(bloomPass);
 
-        // Rim light for cool edges
-        const rimLight = new THREE.DirectionalLight(0xc084fc, 1.5); // Purple rim
-        rimLight.position.set(-20, 10, -20);
-        scene.add(rimLight);
+        // --- DIGITAL VORTEX (PARTICLE SYSTEM) ---
+        const geometry = new THREE.BufferGeometry();
+        const count = 4000;
 
-        // Moving Point Lights (Animated later)
-        const pointLight1 = new THREE.PointLight(0xf43f5e, 1, 50); // Pink
-        pointLight1.position.set(-10, 10, 10);
-        scene.add(pointLight1);
+        const positions = new Float32Array(count * 3);
+        const colors = new Float32Array(count * 3);
+        const sizes = new Float32Array(count);
 
-        const pointLight2 = new THREE.PointLight(0x0ea5e9, 1, 50); // Blue
-        pointLight2.position.set(10, 5, -10);
-        scene.add(pointLight2);
+        const color1 = new THREE.Color(0x4f46e5); // Indigo
+        const color2 = new THREE.Color(0xec4899); // Pink
 
-        // Floor Grid (Glowing)
-        const gridHelper = new THREE.GridHelper(100, 50, 0x4f46e5, 0x1e293b);
-        gridHelper.position.y = -0.1;
-        gridHelper.material.transparent = true;
-        gridHelper.material.opacity = 0.3;
-        scene.add(gridHelper);
+        for (let i = 0; i < count; i++) {
+            const i3 = i * 3;
 
-        // Floating Particles
-        const particlesGeometry = new THREE.BufferGeometry();
-        const particlesCount = 300;
-        const posArray = new Float32Array(particlesCount * 3);
-        for (let i = 0; i < particlesCount * 3; i++) {
-            posArray[i] = (Math.random() - 0.5) * 100;
+            // Sphere distribution
+            const r = 30 * Math.cbrt(Math.random());
+            const theta = Math.random() * 2 * Math.PI;
+            const phi = Math.acos(2 * Math.random() - 1);
+
+            positions[i3] = r * Math.sin(phi) * Math.cos(theta);
+            positions[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+            positions[i3 + 2] = r * Math.cos(phi);
+
+            // Mixed Colors
+            const mixedColor = color1.clone().lerp(color2, Math.random());
+            colors[i3] = mixedColor.r;
+            colors[i3 + 1] = mixedColor.g;
+            colors[i3 + 2] = mixedColor.b;
+
+            sizes[i] = Math.random() * 0.2;
         }
-        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        const particlesMaterial = new THREE.PointsMaterial({
-            size: 0.15,
-            color: 0x6366f1,
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+        const material = new THREE.PointsMaterial({
+            size: 0.2,
+            vertexColors: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
             transparent: true,
-            opacity: 0.8,
-            blending: THREE.AdditiveBlending
-        });
-        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
-        scene.add(particlesMesh);
-
-
-        // --- MATERIALS (Glassy/Crystal) ---
-        const materials = {
-            default: new THREE.MeshPhysicalMaterial({
-                color: 0x6366f1, // Indigo
-                metalness: 0.1,
-                roughness: 0.1,
-                transmission: 0.6, // Glass effect
-                thickness: 1.0,
-                clearcoat: 1.0,
-                clearcoatRoughness: 0.1
-            }),
-            active: new THREE.MeshStandardMaterial({
-                color: 0xfbbf24, // Amber
-                emissive: 0xf59e0b,
-                emissiveIntensity: 0.8,
-                roughness: 0.2,
-                metalness: 0.8
-            }),
-            found: new THREE.MeshStandardMaterial({
-                color: 0x10b981, // Emerald
-                emissive: 0x059669,
-                emissiveIntensity: 0.8,
-                roughness: 0.2,
-                metalness: 0.5
-            }),
-            discarded: new THREE.MeshStandardMaterial({
-                color: 0x334155,
-                transparent: true,
-                opacity: 0.2,
-                roughness: 1.0
-            })
-        };
-
-        // --- STATE ---
-        let bars = [];
-        let dataValues = [];
-        const ARRAY_SIZE = 15;
-        let isSearching = false;
-        let currentMode = 'linear';
-        let animationSpeed = 800;
-        let stepCount = 0;
-
-        // --- HELPERS ---
-        function createTextSprite(message, color = "#e2e8f0") {
-            const fontface = "Outfit, sans-serif";
-            const fontsize = 70;
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            context.font = "800 " + fontsize + "px " + fontface;
-
-            const metrics = context.measureText(message);
-            const textWidth = metrics.width;
-            canvas.width = textWidth + 20;
-            canvas.height = fontsize + 20;
-
-            context.font = "800 " + fontsize + "px " + fontface;
-            context.textAlign = "center";
-            context.textBaseline = "middle";
-            context.fillStyle = color;
-            context.shadowColor = "rgba(0,0,0,0.5)";
-            context.shadowBlur = 10;
-            context.fillText(message, canvas.width / 2, canvas.height / 2);
-
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.minFilter = THREE.LinearFilter;
-            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true }));
-            sprite.scale.set(3, 1.5, 1);
-            return sprite;
-        }
-
-        function generateNewArray() {
-            // Cleanup
-            bars.forEach(b => {
-                scene.remove(b.mesh);
-                scene.remove(b.sprite);
-            });
-            bars = [];
-            dataValues = [];
-            stepCount = 0;
-            updateStepDisplay();
-
-            // Check Custom Input
-            const customInput = document.getElementById('custom-input');
-            let usedCustom = false;
-
-            if (customInput && customInput.value.trim() !== "") {
-                const parts = customInput.value.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
-                if (parts.length > 0) {
-                    dataValues = parts.slice(0, 20); // Max 20
-                    usedCustom = true;
-                    log(`Loaded custom dataset: [${dataValues.join(', ')}]`);
-                    showDescription("Loaded custom dataset.");
-                }
-            }
-
-            if (!usedCustom) {
-                // Random Generation
-                for (let i = 0; i < ARRAY_SIZE; i++) {
-                    dataValues.push(Math.floor(Math.random() * 90) + 10);
-                }
-                if (currentMode === 'binary') dataValues.sort((a, b) => a - b);
-            } else if (currentMode === 'binary') {
-                dataValues.sort((a, b) => a - b);
-                log("Auto-sorted custom data for Binary Search.");
-            }
-
-            const spacing = 2.5;
-            // Dynamic Centering based on actual length
-            const startX = -((dataValues.length - 1) * spacing) / 2;
-
-            dataValues.forEach((val, index) => {
-                const height = val / 6;
-
-                // Geometry: Chamfered Box look via scaling
-                const geometry = new THREE.BoxGeometry(1.8, height, 1.8);
-                const mesh = new THREE.Mesh(geometry, materials.default);
-
-                mesh.position.x = startX + (index * spacing);
-                mesh.position.y = height / 2;
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-
-                // Initial "Pop" animation state
-                mesh.scale.y = 0.01;
-                mesh.position.y = 0.1;
-
-                const sprite = createTextSprite(val.toString());
-                sprite.position.x = mesh.position.x;
-                sprite.position.y = height + 2.5;
-                sprite.scale.set(0, 0, 0); // Hide initially
-
-                scene.add(mesh);
-                scene.add(sprite);
-
-                bars.push({
-                    mesh: mesh,
-                    sprite: sprite,
-                    value: val,
-                    targetHeight: height,
-                    originalY: height / 2,
-                    originalColor: materials.default,
-                    xPos: mesh.position.x
-                });
-            });
-
-            // Intro Animation
-            let delay = 0;
-            bars.forEach(bar => {
-                setTimeout(() => {
-                    // Simple manual tween for scale
-                    const startTime = Date.now();
-                    const duration = 400;
-                    const animateEntry = () => {
-                        const now = Date.now();
-                        const progress = Math.min((now - startTime) / duration, 1);
-                        // Elastic ease out
-                        const ease = 1 - Math.pow(1 - progress, 3);
-
-                        bar.mesh.scale.y = ease;
-                        bar.mesh.position.y = bar.originalY * ease;
-
-                        if (progress > 0.5) {
-                            bar.sprite.scale.set(3 * ease, 1.5 * ease, 1);
-                        }
-
-                        if (progress < 1) requestAnimationFrame(animateEntry);
-                    };
-                    animateEntry();
-                }, delay);
-                delay += 50;
-            });
-
-            log(`System initialized. Mode: ${currentMode.toUpperCase()}`);
-            if (currentMode === 'merge' || currentMode === 'quick') {
-                showDescription("Unsorted dataset generated. Ready to sort.");
-            } else {
-                showDescription("Dataset generated. Ready for search sequence.");
-            }
-        }
-
-        const algoDetails = {
-            linear: {
-                title: "Linear Search",
-                desc: "Iterates through every element sequentially. Does not require a sorted list.",
-                complexity: "O(n)"
-            },
-            binary: {
-                title: "Binary Search",
-                desc: "Divides the search interval in half repeatedly. Requires a sorted list.",
-                complexity: "O(log n)"
-            },
-            merge: {
-                title: "Merge Sort",
-                desc: "Divides array into halves, sorts them and merges them back together.",
-                complexity: "O(n log n)"
-            },
-            quick: {
-                title: "Quick Sort",
-                desc: "Partitions the array around a pivot element and recursively sorts subarrays.",
-                complexity: "O(n log n)"
-            },
-            selection: {
-                title: "Selection Sort",
-                desc: "Repeatedly finds the minimum element and moves it to the beginning.",
-                complexity: "O(n²)"
-            },
-            bubble: {
-                title: "Bubble Sort",
-                desc: "Repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order.",
-                complexity: "O(n²)"
-            }
-        };
-
-        const algoCode = {
-            linear: [
-                "for (let i = 0; i < n; i++) {",
-                "  if (arr[i] === target) {",
-                "    return found at i;",
-                "  }",
-                "}",
-                "return not found;"
-            ],
-            binary: [
-                "let left = 0, right = n - 1;",
-                "while (left <= right) {",
-                "  let mid = Math.floor((left + right) / 2);",
-                "  if (arr[mid] === target) return mid;",
-                "  if (arr[mid] < target) left = mid + 1;",
-                "  else right = mid - 1;",
-                "}"
-            ],
-            selection: [
-                "for (let i = 0; i < n; i++) {",
-                "  let min = i;",
-                "  for (let j = i + 1; j < n; j++) {",
-                "    if (arr[j] < arr[min]) min = j;",
-                "  }",
-                "  if (min !== i) swap(i, min);",
-                "}"
-            ],
-            bubble: [
-                "for (let i = 0; i < n; i++) {",
-                "  for (let j = 0; j < n - i - 1; j++) {",
-                "    if (arr[j] > arr[j + 1]) {",
-                "      swap(j, j + 1);",
-                "    }",
-                "  }",
-                "}"
-            ],
-            merge: [
-                "function mergeSort(arr) {",
-                "  if (arr.length <= 1) return arr;",
-                "  const mid = Math.floor(arr.length / 2);",
-                "  const left = mergeSort(arr.slice(0, mid));",
-                "  const right = mergeSort(arr.slice(mid));",
-                "  return merge(left, right);",
-                "}"
-            ],
-            quick: [
-                "function quickSort(arr, low, high) {",
-                "  if (low < high) {",
-                "    let pi = partition(arr, low, high);",
-                "    quickSort(arr, low, pi - 1);",
-                "    quickSort(arr, pi + 1, high);",
-                "  }",
-                "}"
-            ]
-        };
-
-        function toggleCodePanel() {
-            const panel = document.getElementById('code-panel');
-            panel.classList.toggle('translate-x-[120%]');
-        }
-
-        function updateCodeDisplay(mode) {
-            const container = document.getElementById('code-content');
-            const codeLines = algoCode[mode] || ["// No code available"];
-            container.innerHTML = codeLines.map((line, idx) =>
-                `<div id="code-line-${idx}" class="px-2 py-0.5 border-l-2 border-transparent opacity-50 transition-all">${line}</div>`
-            ).join('');
-        }
-
-        async function highlightLine(lineIndex) {
-            // Reset all
-            document.querySelectorAll('[id^="code-line-"]').forEach(el => {
-                el.classList.remove('bg-indigo-500/20', 'border-indigo-500', 'opacity-100', 'text-white');
-                el.classList.add('opacity-50', 'border-transparent');
-            });
-
-            // Highlight specific
-            if (lineIndex !== null) {
-                const el = document.getElementById(`code-line-${lineIndex}`);
-                if (el) {
-                    el.classList.remove('opacity-50', 'border-transparent');
-                    el.classList.add('bg-indigo-500/20', 'border-indigo-500', 'opacity-100', 'text-white');
-                    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }
-            }
-        }
-
-        function switchMode(mode) {
-            if (isSearching) return;
-            currentMode = mode;
-
-            const tabs = ['linear', 'binary', 'merge', 'quick', 'selection', 'bubble'];
-            const activeClass = "py-2.5 rounded-lg text-xs font-bold transition-all bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]";
-            const inactiveClass = "py-2.5 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white hover:bg-white/5";
-
-            tabs.forEach(t => {
-                const btn = document.getElementById(`tab-${t}`);
-                if (btn) {
-                    btn.className = (t === mode) ? activeClass : inactiveClass;
-                    // Special styling for wide buttons if needed (selection/bubble split row)
-                    // Currently let them fit in grid normally
-                }
-            });
-
-            // Toggle Target Input
-            const targetInput = document.getElementById('target-input');
-            const isSort = (mode === 'merge' || mode === 'quick' || mode === 'selection' || mode === 'bubble');
-            targetInput.disabled = isSort;
-            if (isSort) {
-                targetInput.parentElement.classList.add('opacity-50');
-                targetInput.placeholder = "N/A";
-                targetInput.value = "";
-                document.getElementById('target-display').innerText = "-";
-            } else {
-                targetInput.parentElement.classList.remove('opacity-50');
-                targetInput.placeholder = "1-100";
-            }
-
-            // Update Info Panel
-            const info = algoDetails[mode];
-            document.getElementById('info-title').innerText = info.title;
-            document.getElementById('info-desc').innerText = info.desc;
-            document.getElementById('info-complexity').innerText = info.complexity;
-
-            updateCodeDisplay(mode);
-            generateNewArray();
-        }
-
-        // --- ANIMATION UTILS ---
-        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-        async function highlightBar(index, materialType) {
-            const bar = bars[index];
-            bar.mesh.material = materials[materialType];
-
-            if (materialType === 'active') {
-                // Pop up effect
-                bar.mesh.position.y = bar.originalY + 1.5;
-                bar.sprite.position.y = bar.targetHeight + 4;
-                bar.sprite.material.color.set("#fbbf24");
-            } else if (materialType === 'found') {
-                // Celebration jump
-                bar.mesh.position.y = bar.originalY + 2;
-                bar.sprite.position.y = bar.targetHeight + 5;
-                bar.sprite.material.color.set("#10b981");
-            } else {
-                // Reset
-                bar.mesh.position.y = bar.originalY;
-                bar.sprite.position.y = bar.targetHeight + 2.5;
-                bar.sprite.material.color.set("#e2e8f0");
-            }
-        }
-
-        async function replaceBar(index, newValue) {
-            // Morph bar to new value
-            const bar = bars[index];
-            const newHeight = newValue / 6;
-
-            // 1. Remove old sprite
-            scene.remove(bar.sprite);
-
-            // 2. Create new sprite
-            const newSprite = createTextSprite(newValue.toString());
-            newSprite.position.x = bar.mesh.position.x;
-            newSprite.position.y = newHeight + 2.5; // New text pos
-            newSprite.scale.set(3, 1.5, 1);
-            scene.add(newSprite);
-            bar.sprite = newSprite;
-
-            // 3. Update mesh height via scaling 
-            // We destroy and recreate the mesh to be safe with lighting geometries
-            scene.remove(bar.mesh);
-            const geometry = new THREE.BoxGeometry(1.8, newHeight, 1.8);
-            const mesh = new THREE.Mesh(geometry, materials.active); // Highlight as changed
-            mesh.position.x = bar.xPos;
-            mesh.position.y = newHeight / 2;
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            scene.add(mesh);
-
-            bar.mesh = mesh;
-            bar.value = newValue;
-            bar.targetHeight = newHeight;
-            bar.originalY = newHeight / 2;
-
-            await sleep(animationSpeed * 0.5);
-            bar.mesh.material = materials.default;
-        }
-
-        async function swapBars(i, j) {
-            const barA = bars[i];
-            const barB = bars[j];
-
-            // Highlight
-            barA.mesh.material = materials.active;
-            barB.mesh.material = materials.active;
-            await sleep(animationSpeed * 0.5);
-
-            // Access positions
-            const posA = barA.mesh.position.x;
-            const posB = barB.mesh.position.x;
-
-            // Animate Swap
-            const frames = 20;
-            for (let f = 0; f <= frames; f++) {
-                const alpha = f / frames;
-                // Move A to B
-                barA.mesh.position.x = posA + (posB - posA) * alpha;
-                barA.sprite.position.x = posA + (posB - posA) * alpha;
-
-                // Move B to A
-                barB.mesh.position.x = posB + (posA - posB) * alpha;
-                barB.sprite.position.x = posB + (posA - posB) * alpha;
-
-                await sleep(10);
-            }
-
-            // Sync Data Structure
-            // Swap x coordinates reference
-            const tempX = barA.xPos;
-            barA.xPos = barB.xPos;
-            barB.xPos = tempX;
-
-            // Swap array elements
-            bars[i] = barB;
-            bars[j] = barA;
-
-            // Reset colors
-            barA.mesh.material = materials.default;
-            barB.mesh.material = materials.default;
-        }
-
-        function log(msg) {
-            const container = document.getElementById('log-container');
-            const div = document.createElement('div');
-            div.className = "flex gap-2 text-indigo-300";
-            div.innerHTML = `<span class="opacity-50">›</span> ${msg}`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function showDescription(text) {
-            const el = document.getElementById('algo-description');
-            el.querySelector('p').innerHTML = text;
-            el.classList.remove('opacity-0', 'translate-y-[-20px]');
-        }
-
-        function updateStepDisplay() {
-            document.getElementById('step-counter').innerText = `Step: ${stepCount}`;
-        }
-
-        // --- ALGORITHMS ---
-        async function startSearch() {
-            if (isSearching) return;
-
-            // Validation only for searching
-            let target = null;
-            if (currentMode === 'linear' || currentMode === 'binary') {
-                const inputVal = document.getElementById('target-input').value;
-                if (!inputVal) {
-                    showDescription("⚠️ ERROR: Target input required.");
-                    return;
-                }
-                target = parseInt(inputVal);
-                document.getElementById('target-display').innerText = target;
-            } else {
-                document.getElementById('target-display').innerText = "-";
-            }
-
-            isSearching = true;
-            stepCount = 0;
-            updateStepDisplay();
-            document.getElementById('start-btn').classList.add('opacity-50', 'cursor-not-allowed');
-
-            // Reset visuals
-            bars.forEach(b => {
-                b.mesh.material = materials.default;
-                b.mesh.position.y = b.originalY;
-            });
-
-            try {
-                if (currentMode === 'linear') await linearSearch(target);
-                else if (currentMode === 'binary') await binarySearch(target);
-                else if (currentMode === 'merge') await startMergeSort();
-                else if (currentMode === 'quick') await startQuickSort();
-                else if (currentMode === 'selection') await startSelectionSort();
-                else if (currentMode === 'bubble') await startBubbleSort();
-            } catch (e) { console.error(e); }
-
-            isSearching = false;
-            document.getElementById('start-btn').classList.remove('opacity-50', 'cursor-not-allowed');
-        }
-
-        async function linearSearch(target) {
-            await highlightLine(0);
-            for (let i = 0; i < bars.length; i++) {
-                stepCount++;
-                updateStepDisplay();
-                showDescription(`Scanning index ${i}... Value: <span class="text-indigo-400 font-bold">${bars[i].value}</span>`);
-
-                await highlightLine(1);
-                await highlightBar(i, 'active');
-                await sleep(animationSpeed);
-
-                if (bars[i].value === target) {
-                    await highlightLine(2);
-                    await highlightBar(i, 'found');
-                    showDescription(`🎉 TARGET ACQUIRED at index ${i}`);
-                    log(`Target ${target} found at [${i}]`);
-                    return;
-                }
-                await highlightBar(i, 'default');
-            }
-            await highlightLine(5);
-            showDescription("❌ Search terminated. Target not found.");
-            log(`Target ${target} not found.`);
-        }
-
-        async function binarySearch(target) {
-            let left = 0;
-            let right = bars.length - 1;
-            await highlightLine(0);
-
-            while (left <= right) {
-                await highlightLine(1);
-                stepCount++;
-                updateStepDisplay();
-
-                // Dim outside range
-                for (let i = 0; i < bars.length; i++) {
-                    if (i < left || i > right) bars[i].mesh.material = materials.discarded;
-                    else if (bars[i].mesh.material === materials.discarded) bars[i].mesh.material = materials.default;
-                }
-
-                let mid = Math.floor((left + right) / 2);
-                await highlightLine(2);
-                showDescription(`Binary Split: Checking middle index ${mid} (${bars[mid].value})`);
-
-                await highlightBar(mid, 'active');
-                await sleep(animationSpeed);
-
-                if (bars[mid].value === target) {
-                    await highlightBar(mid, 'found');
-                    await highlightLine(3);
-                    showDescription(`🎉 TARGET ACQUIRED at index ${mid}`);
-                    log(`Target ${target} found at [${mid}]`);
-                    return;
-                }
-
-                if (bars[mid].value < target) {
-                    await highlightLine(4);
-                    left = mid + 1;
-                } else {
-                    await highlightLine(5);
-                    right = mid - 1;
-                }
-                await sleep(animationSpeed);
-            }
-            showDescription("❌ Search terminated. Target not found.");
-            log(`Target ${target} not found.`);
-        }
-
-        // --- SORTING ---
-
-        async function startSelectionSort() {
-            log("Starting Selection Sort...");
-            const n = bars.length;
-            await highlightLine(0);
-
-            for (let i = 0; i < n; i++) {
-                let minIdx = i;
-                await highlightLine(1);
-                // Highlight current position as "being sorted independently"
-                bars[i].mesh.material = materials.active;
-
-                await highlightLine(2);
-                for (let j = i + 1; j < n; j++) {
-                    stepCount++;
-                    updateStepDisplay();
-
-                    // Highlight comparator
-                    const originalMat = bars[j].mesh.material;
-                    bars[j].mesh.material = materials.active;
-                    await highlightLine(3);
-                    await sleep(animationSpeed * 0.4);
-
-                    if (bars[j].value < bars[minIdx].value) {
-                        // Reset old min if it wasn't i
-                        if (minIdx !== i) bars[minIdx].mesh.material = materials.default;
-
-                        minIdx = j;
-                        await highlightLine(4);
-                        bars[minIdx].mesh.material = materials.found; // Temporarily mark new min
-                        showDescription(`Found new minimum: ${bars[minIdx].value}`);
-                    } else {
-                        bars[j].mesh.material = materials.default;
-                    }
-                }
-
-                await highlightLine(5);
-                if (minIdx !== i) {
-                    showDescription(`Swapping ${bars[i].value} with minimum ${bars[minIdx].value}`);
-                    // Ensure colours are distinct for swap
-                    bars[i].mesh.material = materials.active;
-                    bars[minIdx].mesh.material = materials.active;
-                    await swapBars(i, minIdx);
-                }
-
-                // Finalize position
-                bars[i].mesh.material = materials.found;
-                await sleep(animationSpeed * 0.2);
-            }
-            await highlightLine(6);
-            showDescription("✅ Array Sorted (Selection Sort Complete)");
-            log("Selection Sort Complete.");
-        }
-
-        async function startBubbleSort() {
-            log("Starting Bubble Sort...");
-            const n = bars.length;
-            await highlightLine(0);
-
-            for (let i = 0; i < n; i++) {
-                await highlightLine(1);
-                let swapped = false;
-
-                for (let j = 0; j < n - i - 1; j++) {
-                    stepCount++;
-                    updateStepDisplay();
-
-                    bars[j].mesh.material = materials.active;
-                    bars[j + 1].mesh.material = materials.active;
-                    await highlightLine(2);
-                    showDescription(`Comparing ${bars[j].value} and ${bars[j + 1].value}`);
-                    await sleep(animationSpeed * 0.5);
-
-                    if (bars[j].value > bars[j + 1].value) {
-                        await highlightLine(3);
-                        showDescription(`Swapping ${bars[j].value} > ${bars[j + 1].value}`);
-                        await swapBars(j, j + 1);
-                        swapped = true;
-                    } else {
-                        // Reset if no swap
-                        bars[j].mesh.material = materials.default;
-                        bars[j + 1].mesh.material = materials.default;
-                    }
-
-                    // Ensure trail is clean
-                    if (j < n - i - 2) bars[j].mesh.material = materials.default;
-                    await sleep(animationSpeed * 0.2);
-                }
-
-                // Final element of this pass is sorted
-                bars[n - i - 1].mesh.material = materials.found;
-
-                if (!swapped) {
-                    // Optimization: if no swaps, break
-                    // But we want to visualize full loop for educational purposes usually, 
-                    // or we can mark rest as sorted.
-                }
-            }
-            // Ensure 0 is marked
-            bars[0].mesh.material = materials.found;
-
-            await highlightLine(undefined); // Clear highlight
-            showDescription("✅ Array Sorted (Bubble Sort Complete)");
-            log("Bubble Sort Complete.");
-        }
-
-        async function startQuickSort() {
-            log("Starting Quick Sort...");
-            await quickSort(0, bars.length - 1);
-            showDescription("✅ Array Sorted (Quick Sort Complete)");
-            log("Quick Sort Complete.");
-        }
-
-        async function quickSort(low, high) {
-            if (low < high) {
-                let pi = await partition(low, high);
-                await quickSort(low, pi - 1);
-                await quickSort(pi + 1, high);
-            } else if (low === high) {
-                bars[low].mesh.material = materials.found; // Mark as settled
-            }
-        }
-
-        async function partition(low, high) {
-            let pivot = bars[high].value;
-            showDescription(`Partitioning: Pivot is ${pivot} (Index ${high})`);
-            bars[high].mesh.material = materials.active; // Pivot
-
-            let i = (low - 1);
-
-            for (let j = low; j <= high - 1; j++) {
-                stepCount++;
-                updateStepDisplay();
-
-                // Highlight current compare
-                const originalMat = bars[j].mesh.material;
-                bars[j].mesh.material = materials.active;
-                await sleep(animationSpeed * 0.3);
-
-                if (bars[j].value < pivot) {
-                    i++;
-                    if (i !== j) {
-                        showDescription(`Swapping ${bars[i].value} and ${bars[j].value}`);
-                        await swapBars(i, j);
-                    }
-                }
-                bars[j].mesh.material = materials.default;
-            }
-            if (i + 1 !== high) {
-                await swapBars(i + 1, high);
-            }
-
-            // Set pivot to found to show it's in final place
-            bars[i + 1].mesh.material = materials.found;
-            return (i + 1);
-        }
-
-        async function startMergeSort() {
-            log("Starting Merge Sort...");
-            await mergeSort(0, bars.length - 1);
-
-            // Final pass to turn all Green
-            for (let b of bars) {
-                b.mesh.material = materials.found;
-                await sleep(20);
-            }
-            showDescription("✅ Array Sorted (Merge Sort Complete)");
-            log("Merge Sort Complete.");
-        }
-
-        async function mergeSort(l, r) {
-            if (l >= r) return;
-
-            const m = l + Math.floor((r - l) / 2);
-            await mergeSort(l, m);
-            await mergeSort(m + 1, r);
-            await merge(l, m, r);
-        }
-
-        async function merge(l, m, r) {
-            const n1 = m - l + 1;
-            const n2 = r - m;
-
-            // Create temp arrays of VALUES
-            let L = new Array(n1);
-            let R = new Array(n2);
-
-            for (let i = 0; i < n1; i++) L[i] = bars[l + i].value;
-            for (let j = 0; j < n2; j++) R[j] = bars[m + 1 + j].value;
-
-            let i = 0, j = 0, k = l;
-
-            showDescription(`Merging range [${l}..${r}]`);
-
-            while (i < n1 && j < n2) {
-                stepCount++;
-                updateStepDisplay();
-
-                // Visualize comparison
-                bars[l + i].mesh.material = materials.active;
-                bars[m + 1 + j].mesh.material = materials.active;
-                await sleep(animationSpeed * 0.5);
-
-                if (L[i] <= R[j]) {
-                    if (bars[k].value !== L[i]) await replaceBar(k, L[i]);
-                    i++;
-                } else {
-                    if (bars[k].value !== R[j]) await replaceBar(k, R[j]);
-                    j++;
-                }
-
-                // Return colors
-                if (bars[l + i]) bars[l + i].mesh.material = materials.default;
-                if (bars[m + 1 + j]) bars[m + 1 + j].mesh.material = materials.default;
-                k++;
-            }
-
-            while (i < n1) {
-                stepCount++;
-                if (bars[k].value !== L[i]) await replaceBar(k, L[i]);
-                i++;
-                k++;
-            }
-            while (j < n2) {
-                stepCount++;
-                if (bars[k].value !== R[j]) await replaceBar(k, R[j]);
-                j++;
-                k++;
-            }
-        }
-
-        // --- EVENTS ---
-        document.getElementById('speed-range').addEventListener('input', (e) => {
-            const val = parseInt(e.target.value);
-            animationSpeed = 2100 - val;
-            let label = "Normal";
-            if (animationSpeed < 300) label = "Hyper";
-            else if (animationSpeed > 1500) label = "Slow";
-            document.getElementById('speed-label').innerText = label;
+            opacity: 0.8
         });
 
-        // Orbit Controls (Mouse & Touch)
-        let isDragging = false;
-        let previousMousePosition = { x: 0, y: 0 };
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
 
-        const onStart = (x, y) => {
-            isDragging = true;
-            previousMousePosition = { x, y };
-        };
-        const onEnd = () => isDragging = false;
-        const onMove = (x, y) => {
-            if (isDragging) {
-                const deltaMove = { x: x - previousMousePosition.x, y: y - previousMousePosition.y };
-                scene.rotation.y += deltaMove.x * 0.005;
-                scene.rotation.x += deltaMove.y * 0.002;
-                previousMousePosition = { x, y };
-            }
-        };
+        // --- INTERACTIVITY ---
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetX = 0;
+        let targetY = 0;
 
-        wrapper.addEventListener('mousedown', e => onStart(e.offsetX, e.offsetY));
-        window.addEventListener('mouseup', onEnd);
-        wrapper.addEventListener('mousemove', e => onMove(e.offsetX, e.offsetY));
+        const windowHalfX = window.innerWidth / 2;
+        const windowHalfY = window.innerHeight / 2;
 
-        wrapper.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            camera.position.z += e.deltaY * 0.05;
-            camera.position.z = Math.max(20, Math.min(100, camera.position.z));
-        }, { passive: false });
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX - windowHalfX) * 0.001;
+            mouseY = (event.clientY - windowHalfY) * 0.001;
+        });
 
-        wrapper.addEventListener('touchstart', e => onStart(e.touches[0].clientX, e.touches[0].clientY), { passive: false });
-        window.addEventListener('touchend', onEnd);
-        wrapper.addEventListener('touchmove', e => {
-            e.preventDefault();
-            onMove(e.touches[0].clientX, e.touches[0].clientY);
-        }, { passive: false });
+        // --- ANIMATION LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            const elapsedTime = clock.getElapsedTime();
+
+            targetX = mouseX * 2;
+            targetY = mouseY * 2;
+
+            // Rotate Vortex
+            particles.rotation.y = elapsedTime * 0.05 + (mouseX * 0.5);
+            particles.rotation.x += (mouseY * 0.05 - particles.rotation.x) * 0.05;
+
+            // Camera Sway
+            camera.position.x += (mouseX * 10 - camera.position.x) * 0.02;
+            camera.position.y += (-mouseY * 10 - camera.position.y) * 0.02;
+            camera.lookAt(0, 0, 0);
+
+            // Pulse effect
+            bloomPass.strength = 1.5 + Math.sin(elapsedTime * 2) * 0.2;
+
+            composer.render();
+            requestAnimationFrame(animate);
+        }
 
         window.addEventListener('resize', () => {
-            camera.aspect = wrapper.clientWidth / wrapper.clientHeight;
+            camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(wrapper.clientWidth, wrapper.clientHeight);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // --- LOOP ---
-        function animate() {
-            requestAnimationFrame(animate);
-            const time = Date.now() * 0.001;
-
-            // Animate Lights
-            pointLight1.position.x = Math.sin(time * 0.5) * 20;
-            pointLight1.position.z = Math.cos(time * 0.5) * 20;
-            pointLight2.position.x = Math.cos(time * 0.3) * 25;
-            pointLight2.position.z = Math.sin(time * 0.3) * 25;
-
-            // Animate Particles
-            particlesMesh.rotation.y = time * 0.05;
-            particlesMesh.position.y = Math.sin(time * 0.2) * 2;
-
-            // Bar idle animation
-            bars.forEach((b, i) => {
-                if (b.mesh.material === materials.active) {
-                    b.mesh.rotation.y += 0.05;
-                    b.mesh.scale.x = 1 + Math.sin(time * 10) * 0.1;
-                    b.mesh.scale.z = 1 + Math.sin(time * 10) * 0.1;
-                } else if (b.mesh.material === materials.found) {
-                    b.mesh.rotation.y += 0.1;
-                    b.mesh.position.y = (b.originalY + 2) + Math.abs(Math.sin(time * 5));
-                }
-            });
-
-            renderer.render(scene, camera);
-        }
-
-        // --- NAVIGATION & MODE HANDLING ---
-        function initNavigation() {
-            const params = new URLSearchParams(window.location.search);
-            const modeParam = params.get('mode'); // 'search' or 'sorting'
-
-            // Add Back Button
-            const header = document.querySelector('h1').parentElement;
-            const backBtn = document.createElement('a');
-            backBtn.href = "index.html";
-            backBtn.className = "text-[10px] text-slate-500 hover:text-white uppercase font-bold tracking-widest mb-3 block transition-colors flex items-center gap-1";
-            backBtn.innerHTML = "<span>←</span> Back to Home";
-            header.prepend(backBtn);
-
-            // Filter Tabs
-            if (modeParam === 'search') {
-                document.getElementById('tab-merge').style.display = 'none';
-                document.getElementById('tab-quick').style.display = 'none';
-                document.getElementById('tab-selection').style.display = 'none';
-                document.getElementById('tab-bubble').style.display = 'none';
-
-                // Ensure layout
-                const container = document.getElementById('tab-linear').parentElement;
-                container.classList.add('grid-cols-2');
-
-                // Set Default
-                currentMode = 'linear';
-                switchMode('linear');
-            }
-            else if (modeParam === 'sorting') {
-                document.getElementById('tab-linear').style.display = 'none';
-                document.getElementById('tab-binary').style.display = 'none';
-
-                // Set Default
-                currentMode = 'merge';
-                switchMode('merge');
-            }
-        }
-
-        initNavigation();
-        generateNewArray();
         animate();
-
     </script>
 </body>
 
